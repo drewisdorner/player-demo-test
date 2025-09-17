@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Inline Voice Players — Beispiel</title>
+  <style>
+    :root{
+      --bg: #0f1720;
+      --card: #0b1220;
+      --muted: #9aa4b2;
+      --accent: #7dd3fc;
+      --glass: rgba(255,255,255,0.03);
+      --radius: 10px;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    }
+
+    body{background: linear-gradient(180deg,#071023 0%, #071428 100%); color: #e6eef6; padding:24px;}
+    h1{font-size:18px;margin:0 0 12px 0}
+    p{color:var(--muted);margin:0 0 20px 0}
+
+    .voice-player{
+      display:flex;align-items:center;gap:12px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      padding:10px;border-radius:var(--radius);box-shadow:0 4px 18px rgba(2,6,23,0.6);
+      max-width:520px;margin-bottom:12px;backdrop-filter: blur(6px);
+    }
+
+    .play-btn{
+      width:44px;height:44px;border-radius:8px;border:0;display:grid;place-items:center;
+      background:var(--glass);color:var(--accent);font-size:18px;cursor:pointer;flex:0 0 44px;
+      transition:transform .08s ease;outline: none;
+    }
+    .play-btn:active{transform:scale(.98)}
+
+    .meta{flex:1;min-width:0}
+    .title{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .subtitle{font-size:12px;color:var(--muted);margin-top:3px}
+
+    .progress-wrap{display:flex;align-items:center;gap:10px;margin-left:12px;flex:0 0 220px}
+    .progress{position:relative;flex:1;height:8px;background:rgba(255,255,255,0.04);border-radius:6px;cursor:pointer}
+    .progress > .bar{position:absolute;left:0;top:0;bottom:0;width:0;border-radius:6px;background:linear-gradient(90deg,var(--accent), #60a5fa)}
+    .time{font-size:12px;color:var(--muted);min-width:42px;text-align:right}
+
+    /* small responsive tweak */
+    @media (max-width:480px){
+      .voice-player{padding:8px}
+      .progress-wrap{flex-basis:140px}
+      .play-btn{width:40px;height:40px}
+    }
+  </style>
+</head>
+<body>
+  <h1>Voice Samples — Inline Player</h1>
+  <p>Mehrere kleine Audio-Player. Wenn ein Player startet, werden alle anderen sofort gestoppt und auf 0 gesetzt.</p>
+
+  <!-- Beispiel-Player: duplizieren und src anpassen -->
+  <div class="voice-player" data-title="Kindermann 1" data-sub="15s, Demo A">
+    <button class="play-btn" aria-label="Play sample">⏵</button>
+    <div class="meta">
+      <div class="title">Kindermann 1</div>
+      <div class="subtitle">15s · Demo A</div>
+    </div>
+    <div class="progress-wrap">
+      <div class="progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+        <div class="bar"></div>
+      </div>
+      <div class="time">0:00</div>
+    </div>
+    <audio preload="none" src="Robert_Kindermann.mp3"></audio>
+  </div>
+
+  <div class="voice-player" data-title="Kindermann 2" data-sub="15s, Demo A">
+    <button class="play-btn" aria-label="Play sample">⏵</button>
+    <div class="meta">
+      <div class="title">Kindermann 2</div>
+      <div class="subtitle">15s · Demo A</div>
+    </div>
+    <div class="progress-wrap">
+      <div class="progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+        <div class="bar"></div>
+      </div>
+      <div class="time">0:00</div>
+    </div>
+    <audio preload="none" src="Robert_Kindermann2.mp3"></audio>
+  </div>
+
+  <div class="voice-player" data-title="Erzähler — Warm" data-sub="30s, Demo B">
+    <button class="play-btn" aria-label="Play sample">⏵</button>
+    <div class="meta">
+      <div class="title">Erzähler — Warm</div>
+      <div class="subtitle">30s · Demo B</div>
+    </div>
+    <div class="progress-wrap">
+      <div class="progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+        <div class="bar"></div>
+      </div>
+      <div class="time">0:00</div>
+    </div>
+    <audio preload="none" src="Robert_Kindermann3.mp3"></audio>
+  </div>
+
+  <div class="voice-player" data-title="Character — Funny" data-sub="8s, Demo C">
+    <button class="play-btn" aria-label="Play sample">⏵</button>
+    <div class="meta">
+      <div class="title">Character — Funny</div>
+      <div class="subtitle">8s · Demo C</div>
+    </div>
+    <div class="progress-wrap">
+      <div class="progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+        <div class="bar"></div>
+      </div>
+      <div class="time">0:00</div>
+    </div>
+    <audio preload="none" src="Robert_Kindermann4.mp3"></audio>
+  </div>
+
+  <script>
+    // Initialisiert alle Player auf der Seite. Kein externes Framework.
+    (function(){
+      const players = Array.from(document.querySelectorAll('.voice-player'));
+
+      function formatTime(sec){
+        if(!isFinite(sec)) return '0:00';
+        sec = Math.floor(sec);
+        const m = Math.floor(sec/60);
+        const s = sec % 60;
+        return m + ':' + String(s).padStart(2,'0');
+      }
+
+      function stopAllExcept(currentAudio){
+        players.forEach(p => {
+          const audio = p.querySelector('audio');
+          if(audio !== currentAudio){
+            // only reset if playing or not at 0 to avoid useless events
+            if(!audio.paused || audio.currentTime !== 0){
+              audio.pause();
+              audio.currentTime = 0;
+              updateUIFor(p);
+            }
+          }
+        });
+      }
+
+      function updateUIFor(player){
+        const audio = player.querySelector('audio');
+        const btn = player.querySelector('.play-btn');
+        const bar = player.querySelector('.bar');
+        const progress = player.querySelector('.progress');
+        const time = player.querySelector('.time');
+
+        const pct = (audio.duration && audio.duration > 0) ? (audio.currentTime / audio.duration * 100) : 0;
+        bar.style.width = pct + '%';
+        progress.setAttribute('aria-valuenow', Math.round(pct));
+        time.textContent = formatTime(audio.currentTime) + (audio.duration ? ' / ' + formatTime(audio.duration) : '');
+        btn.textContent = audio.paused ? '⏵' : '⏸';
+        btn.setAttribute('aria-label', audio.paused ? 'Play sample' : 'Pause sample');
+      }
+
+      players.forEach(player => {
+        const btn = player.querySelector('.play-btn');
+        const audio = player.querySelector('audio');
+        const progress = player.querySelector('.progress');
+
+        // make sure audio is focusable for keyboard users
+        btn.addEventListener('click', e => {
+          if(audio.paused){
+            // stop others before playing
+            stopAllExcept(audio);
+            audio.play().catch(()=>{/* play blocked (autoplay) — user gesture required */});
+          } else {
+            audio.pause();
+          }
+        });
+
+        // Update UI frequently
+        audio.addEventListener('timeupdate', () => updateUIFor(player));
+        audio.addEventListener('play', () => {
+          // When this starts, stop+reset all others
+          stopAllExcept(audio);
+          updateUIFor(player);
+        });
+        audio.addEventListener('pause', () => updateUIFor(player));
+        audio.addEventListener('loadedmetadata', () => updateUIFor(player));
+        audio.addEventListener('ended', () => {
+          // reset to start and update
+          audio.currentTime = 0;
+          audio.pause();
+          updateUIFor(player);
+        });
+
+        // Seek on click
+        progress.addEventListener('click', (ev) => {
+          const rect = progress.getBoundingClientRect();
+          const x = ev.clientX - rect.left;
+          const pct = Math.max(0, Math.min(1, x / rect.width));
+          if(audio.duration){
+            audio.currentTime = pct * audio.duration;
+          }
+        });
+
+        // make the whole element keyboard-friendly: space toggles play when focused
+        player.tabIndex = -1; // keep natural tabbing to controls
+
+        // init UI
+        updateUIFor(player);
+      });
+
+      // Optional: stop all when navigating away
+      window.addEventListener('pagehide', () => players.forEach(p => {const a=p.querySelector('audio'); a.pause(); a.currentTime=0;}));
+
+    })();
+  </script>
+</body>
+</html>
